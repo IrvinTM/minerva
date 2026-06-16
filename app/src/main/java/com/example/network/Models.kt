@@ -71,6 +71,35 @@ data class MateriasResponse(
 )
 
 @JsonClass(generateAdapter = true)
+data class EvaluacionesResponse(
+    val data: List<EvaluacionDataItem>,
+    val message: String,
+    val status: String
+)
+
+@JsonClass(generateAdapter = true)
+data class EvaluacionDataItem(
+    val id: Long,
+    val nota: NotaDetalle?
+)
+
+@JsonClass(generateAdapter = true)
+data class NotaDetalle(
+    val id: Long,
+    val nota: Double,
+    val evaluacion: EvaluacionInfo?
+)
+
+@JsonClass(generateAdapter = true)
+data class EvaluacionInfo(
+    val id: Long,
+    val nombre: String,
+    val porcentaje: Double,
+    val fecha: String?,
+    val hora: String?
+)
+
+@JsonClass(generateAdapter = true)
 data class FacultadResponse(
     val data: FacultadData?,
     val message: String,

@@ -34,6 +34,7 @@ fun DashboardScreen(
   val isLoading by viewModel.isLoadingExpediente.collectAsState()
   val materias by viewModel.materias.collectAsState()
   val facultad by viewModel.facultad.collectAsState()
+  val selectedMateria by viewModel.selectedMateria.collectAsState()
 
   var showLogoutMenu by remember { mutableStateOf(false) }
 
@@ -41,12 +42,18 @@ fun DashboardScreen(
     topBar = {
       TopAppBar(
         title = {
-            if (isExpedienteOpen) {
+            if (selectedMateria != null) {
+                Text("Detalle de Notas", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
+            } else if (isExpedienteOpen) {
                 Text("Expediente", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
             }
         },
         navigationIcon = {
-            if (isExpedienteOpen) {
+            if (selectedMateria != null) {
+                IconButton(onClick = { viewModel.clearSelectedMateria() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver a Expediente", tint = Color.White)
+                }
+            } else if (isExpedienteOpen) {
                 IconButton(onClick = { viewModel.closeExpediente() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
                 }
@@ -144,6 +151,64 @@ fun DashboardScreen(
                     }
                 }
             }
+        } else if (selectedMateria != null) {
+            val isLoadingEvals by viewModel.isLoadingEvaluaciones.collectAsState()
+            val evaluaciones by viewModel.evaluaciones.collectAsState()
+            val materia = selectedMateria!!
+
+            if (isLoadingEvals) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MinervaBlue)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    item {
+                        val codigo = materia.grupoPensum?.pensum?.codigo ?: ""
+                        val nombre = materia.grupoPensum?.pensum?.materia?.nombre ?: "Desconocida"
+                        
+                        Text(
+                            text = "$codigo - $nombre",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MinervaNavy
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Nota Final Actual: ${materia.notaFinal}",
+                            style = MaterialTheme.typography.titleMedium.copy(color = MinervaBlueDark)
+                        )
+                        Text(
+                            text = "Estado: ${materia.estado}",
+                            style = MaterialTheme.typography.bodyMedium.copy(color = MinervaGrayDark)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Evaluaciones Registradas",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MinervaGrayDark
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    items(evaluaciones) { eval ->
+                        EvaluacionCard(eval)
+                    }
+
+                    if (evaluaciones.isEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                                Text(text = "No hay evaluaciones registradas.", color = MinervaGrayMedium)
+                            }
+                        }
+                    }
+                }
+            }
         } else {
             // Expediente content
             if (isLoading) {
@@ -196,7 +261,7 @@ fun DashboardScreen(
                     }
 
                     items(materias) { materiaItem ->
-                        MateriaCard(materiaItem = materiaItem)
+                        MateriaCard(materiaItem = materiaItem, onClick = { viewModel.selectMateria(materiaItem) })
                     }
                     
                     if (materias.isEmpty() && !isLoading) {
@@ -214,8 +279,9 @@ fun DashboardScreen(
 }
 
 @Composable
-fun MateriaCard(materiaItem: com.example.network.MateriaItem) {
+fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -279,6 +345,63 @@ fun MateriaCard(materiaItem: com.example.network.MateriaItem) {
                         )
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
+    val evaluacion = evalItem.nota?.evaluacion
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = evaluacion?.nombre ?: "Evaluación",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MinervaGrayDark
+                    )
+                )
+                Text(
+                    text = "Ponderación: ${evaluacion?.porcentaje ?: 0.0}%",
+                    style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
+                )
+                if (evaluacion?.fecha != null) {
+                    Text(
+                        text = "Fecha: ${evaluacion.fecha} ${evaluacion.hora ?: ""}",
+                        style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
+                    )
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = MinervaBlueLight.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = evalItem.nota?.nota?.toString() ?: "-",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MinervaBlueDark
+                    )
+                )
             }
         }
     }

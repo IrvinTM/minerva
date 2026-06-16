@@ -74,6 +74,15 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
   private val _isExpedienteOpen = MutableStateFlow(false)
   val isExpedienteOpen: StateFlow<Boolean> = _isExpedienteOpen.asStateFlow()
 
+  private val _selectedMateria = MutableStateFlow<com.example.network.MateriaItem?>(null)
+  val selectedMateria: StateFlow<com.example.network.MateriaItem?> = _selectedMateria.asStateFlow()
+
+  private val _evaluaciones = MutableStateFlow<List<com.example.network.EvaluacionDataItem>>(emptyList())
+  val evaluaciones: StateFlow<List<com.example.network.EvaluacionDataItem>> = _evaluaciones.asStateFlow()
+
+  private val _isLoadingEvaluaciones = MutableStateFlow(false)
+  val isLoadingEvaluaciones: StateFlow<Boolean> = _isLoadingEvaluaciones.asStateFlow()
+
   // Current screen state
   private val _currentScreen = MutableStateFlow<Screen>(Screen.Login)
   val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
@@ -189,6 +198,34 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
 
   fun closeExpediente() {
     _isExpedienteOpen.value = false
+    clearSelectedMateria()
+  }
+
+  fun selectMateria(materia: com.example.network.MateriaItem) {
+    _selectedMateria.value = materia
+    loadEvaluaciones(materia.id)
+  }
+
+  fun clearSelectedMateria() {
+    _selectedMateria.value = null
+    _evaluaciones.value = emptyList()
+  }
+
+  private fun loadEvaluaciones(idExpediente: Int) {
+    viewModelScope.launch {
+      val token = sessionManager.getAccessToken() ?: return@launch
+      _isLoadingEvaluaciones.value = true
+      try {
+        val response = apiService.getEvaluaciones(token, token, idExpediente)
+        if (response.isSuccessful) {
+          _evaluaciones.value = response.body()?.data ?: emptyList()
+        }
+      } catch (e: Exception) {
+        e.printStackTrace()
+      } finally {
+        _isLoadingEvaluaciones.value = false
+      }
+    }
   }
 
   private fun loadExpediente() {

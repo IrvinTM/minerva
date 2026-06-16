@@ -30,6 +30,13 @@ interface UesApiService {
         @Path("id_periodo") idPeriodo: Int
     ): Response<MateriasResponse>
 
+    @GET("main/nota/evaluaciones/{id_expediente}")
+    suspend fun getEvaluaciones(
+        @Header("K-TOKEN") kToken: String,
+        @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Path("id_expediente") idExpediente: Int
+    ): Response<EvaluacionesResponse>
+
     companion object {
         private const val BASE_URL = "https://mimas.ues.edu.sv/"
 
