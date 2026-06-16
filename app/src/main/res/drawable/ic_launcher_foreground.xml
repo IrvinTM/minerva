@@ -1,0 +1,66 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Outer concentric gold seal circle -->
+    <path
+        android:strokeColor="#C5A059"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M 54 18 A 36 36 0 1 1 53.99 18 Z" />
+
+    <!-- Inner gold helper ring -->
+    <path
+        android:strokeColor="#C5A059"
+        android:strokeWidth="0.8"
+        android:pathData="M 54 22 A 32 32 0 1 1 53.99 22 Z" />
+
+    <!-- Elegant Stylized Minerva Profile silhouette (White & Gold highlights) -->
+    <!-- Phrygian Headband/Helmet Crown -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,30 C43,30 38,36 38,42 C38,43 39,44 40,44 C42,44 43,41 47,39 C51,37 57,38 60,39 C62,39.5 64,36 62,34 C59,31 56,30 52,30 Z" />
+
+    <!-- Face Silhouette facing Left -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M49,38 C47,39 45,42 45,44 C45,45 42,47 41,47 C39.5,47 39,48.5 39,49.5 C39,50 40,51 41.5,51 C42.2,51 42.5,51.8 42,52.5 C41.2,53.5 39,53.8 39,55 C39,56.5 40.5,57 42,57 C44,57 44.5,58.5 43,59.5 C41.5,60.5 41,61.8 43,62.5 C44.5,63 46,62 48.5,61 C50,60.5 51.5,62 50.5,64.5 C49.5,67 47.5,70 51,70 C54.5,70 59,64 59,57 C59,51 54,42 49,38 Z" />
+
+    <!-- Classic Greek Hair Bun & Ringlets -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M51,36 C55,36 59,41 60,45 C61,49 60,53 62,55 C64,57 66,56 67,53 C68,50 67,45 64,41 C62.5,39 56,35 51,36 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,45 A 3.5 3.5 0 1 1 59.99 45 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M63,49 A 3 3 0 1 1 62.99 49 Z" />
+
+    <!-- Shoulder & Grecian Toga drapery -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48.5,61 C45,63 44,67 44,71 C44,74 48,76 53,76 C59,76 65,72 63,65 C61.5,60 51.5,60 48.5,61 Z" />
+
+    <!-- Educational Laurel Branches framing bottom curves -->
+    <path
+        android:strokeColor="#C5A059"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M23,54 C23,69 37,79 54,79 M85,54 C85,69 71,79 54,79" />
+    
+    <!-- Left Leaves -->
+    <path android:fillColor="#C5A059" android:pathData="M24,58 L20,56 L24,54 Z" />
+    <path android:fillColor="#C5A559" android:pathData="M27,65 L22,64 L25,60 Z" />
+    <path android:fillColor="#C5A059" android:pathData="M33,71 L28,72 L29,67 Z" />
+    <path android:fillColor="#C5A059" android:pathData="M41,76 L36,78 L36,73 Z" />
+
+    <!-- Right Leaves -->
+    <path android:fillColor="#C5A059" android:pathData="M84,58 L88,56 L84,54 Z" />
+    <path android:fillColor="#C5A059" android:pathData="M81,65 L86,64 L83,60 Z" />
+    <path android:fillColor="#C5A059" android:pathData="M75,71 L80,72 L79,67 Z" />
+    <path android:fillColor="#C5A059" android:pathData="M67,76 L72,78 L72,73 Z" />
+
+</vector>

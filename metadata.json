@@ -1,0 +1,6 @@
+{
+  "name": "MINERVA",
+  "description": "Un portal académico moderno para consultar calificaciones universitarias, horarios de clases y perfil institucional.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
