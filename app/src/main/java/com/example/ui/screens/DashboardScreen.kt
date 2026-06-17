@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
@@ -23,6 +24,26 @@ import androidx.compose.ui.unit.sp
 import com.example.ui.theme.*
 import com.example.ui.viewmodel.PortalViewModel
 
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.material.icons.filled.Menu
+import kotlinx.coroutines.launch
+
+@Composable
+fun ProfileDetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
@@ -35,75 +56,141 @@ fun DashboardScreen(
   val materias by viewModel.materias.collectAsState()
   val facultad by viewModel.facultad.collectAsState()
   val selectedMateria by viewModel.selectedMateria.collectAsState()
+  val isPerfilOpen by viewModel.isPerfilOpen.collectAsState()
+  val profilePhotoBase64 by viewModel.profilePhotoBase64.collectAsState()
+
+  val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+  val coroutineScope = rememberCoroutineScope()
 
   var showLogoutMenu by remember { mutableStateOf(false) }
 
-  Scaffold(
-    topBar = {
-      TopAppBar(
-        title = {
-            if (selectedMateria != null) {
-                Text("Detalle de Notas", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
-            } else if (isExpedienteOpen) {
-                Text("Expediente", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
-            }
-        },
-        navigationIcon = {
-            if (selectedMateria != null) {
-                IconButton(onClick = { viewModel.clearSelectedMateria() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver a Expediente", tint = Color.White)
-                }
-            } else if (isExpedienteOpen) {
-                IconButton(onClick = { viewModel.closeExpediente() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
-                }
-            }
-        },
-        actions = {
-          Box {
-              IconButton(onClick = { showLogoutMenu = true }) {
-                Box(
+  ModalNavigationDrawer(
+    drawerState = drawerState,
+    gesturesEnabled = !isExpedienteOpen && selectedMateria == null && !isPerfilOpen,
+    drawerContent = {
+        ModalDrawerSheet {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Menú", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+            HorizontalDivider()
+            NavigationDrawerItem(
+                label = { Text("Inicio") },
+                selected = !isExpedienteOpen && !isPerfilOpen && selectedMateria == null,
+                onClick = { 
+                    coroutineScope.launch { drawerState.close() }
+                    viewModel.closeExpediente()
+                    viewModel.closePerfil()
+                },
+                icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+            )
+            NavigationDrawerItem(
+                label = { Text("Expediente") },
+                selected = isExpedienteOpen,
+                onClick = { 
+                    coroutineScope.launch { drawerState.close() }
+                    viewModel.closePerfil()
+                    viewModel.openExpediente()
+                },
+                icon = { Icon(Icons.Default.Assignment, contentDescription = null) },
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+            )
+            NavigationDrawerItem(
+                label = { Text("Perfil") },
+                selected = isPerfilOpen,
+                onClick = { 
+                    coroutineScope.launch { drawerState.close() }
+                    viewModel.closeExpediente()
+                    viewModel.openPerfil()
+                },
+                icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+            )
+            HorizontalDivider()
+            NavigationDrawerItem(
+                label = { Text("Cerrar Sesión", color = MaterialTheme.colorScheme.error) },
+                selected = false,
+                onClick = { 
+                    coroutineScope.launch { drawerState.close() }
+                    viewModel.handleSignOut()
+                },
+                icon = { Icon(Icons.Default.ExitToApp, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+            )
+        }
+    }
+  ) {
+    Scaffold(
+      topBar = {
+        TopAppBar(
+          title = {
+              if (selectedMateria != null) {
+                  Text("Detalle de Notas", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
+              } else if (isExpedienteOpen) {
+                  Text("Expediente", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
+              } else if (isPerfilOpen) {
+                  Text("Perfil", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
+              } else {
+                  Text("Inicio", style = MaterialTheme.typography.titleMedium.copy(color = Color.White))
+              }
+          },
+          navigationIcon = {
+              if (selectedMateria != null) {
+                  IconButton(onClick = { viewModel.clearSelectedMateria() }) {
+                      Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver a Expediente", tint = Color.White)
+                  }
+              } else if (isExpedienteOpen) {
+                  IconButton(onClick = { viewModel.closeExpediente() }) {
+                      Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                  }
+              } else if (isPerfilOpen) {
+                  IconButton(onClick = { viewModel.closePerfil() }) {
+                      Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color.White)
+                  }
+              } else {
+                  IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
+                      Icon(Icons.Default.Menu, contentDescription = "Menú", tint = Color.White)
+                  }
+              }
+          },
+          actions = {
+              Box(
                   modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f)),
+                      .padding(end = 16.dp)
+                      .size(36.dp)
+                      .clip(CircleShape)
+                      .background(Color.White.copy(alpha = 0.2f)),
                   contentAlignment = Alignment.Center
-                ) {
-                  Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Perfil",
-                    tint = Color.White
-                  )
-                }
-              }
-              DropdownMenu(
-                  expanded = showLogoutMenu,
-                  onDismissRequest = { showLogoutMenu = false }
               ) {
-                  DropdownMenuItem(
-                      text = { Text("Cerrar Sesión") },
-                      onClick = {
-                          showLogoutMenu = false
-                          viewModel.handleSignOut()
-                      },
-                      leadingIcon = { Icon(Icons.Default.ExitToApp, contentDescription = null) }
-                  )
+                  if (profilePhotoBase64 != null) {
+                      val bitmap = remember(profilePhotoBase64) { decodeBase64ToBitmap(profilePhotoBase64!!) }
+                      if (bitmap != null) {
+                          Image(
+                              bitmap = bitmap.asImageBitmap(),
+                              contentDescription = "Foto de perfil",
+                              contentScale = ContentScale.Crop,
+                              modifier = Modifier.fillMaxSize()
+                          )
+                      } else {
+                          Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.White)
+                      }
+                  } else {
+                      Icon(Icons.Default.Person, contentDescription = "Perfil", tint = Color.White)
+                  }
               }
-          }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MinervaBlue)
-      )
-    },
-    modifier = modifier.fillMaxSize()
-  ) { innerPadding ->
+          },
+          colors = TopAppBarDefaults.topAppBarColors(containerColor = MinervaBlue)
+        )
+      },
+      modifier = modifier.fillMaxSize()
+    ) { innerPadding ->
     Box(
       modifier = Modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background)
         .padding(innerPadding)
     ) {
-        if (!isExpedienteOpen) {
-            // Main clean screen with just one option
+        if (!isExpedienteOpen && !isPerfilOpen && selectedMateria == null) {
+            // Main clean screen with minimalist options
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -114,41 +201,114 @@ fun DashboardScreen(
                 Text(
                     text = "Hola, $studentName",
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MinervaNavy
-                    )
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(48.dp))
 
-                Card(
-                    onClick = { viewModel.openExpediente() },
+                MenuOptionCard(
+                    title = "Expediente",
+                    icon = Icons.Default.Assignment,
+                    onClick = { viewModel.openExpediente() }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                MenuOptionCard(
+                    title = "Perfil",
+                    icon = Icons.Default.Person,
+                    onClick = { viewModel.openPerfil() }
+                )
+            }
+        } else if (isPerfilOpen) {
+            val studentId by viewModel.studentId.collectAsState()
+            val personaInfo by viewModel.personaInfo.collectAsState()
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(32.dp))
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MinervaBlue),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .size(120.dp)
+                        .clip(CircleShape)
+                        .background(MinervaBlue.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Assignment,
-                            contentDescription = "Expediente",
-                            tint = Color.White,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = "Expediente",
-                            style = MaterialTheme.typography.headlineSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
+                    if (profilePhotoBase64 != null) {
+                        val bitmap = remember(profilePhotoBase64) { decodeBase64ToBitmap(profilePhotoBase64!!) }
+                        if (bitmap != null) {
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = "Foto de perfil",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
                             )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Avatar",
+                                modifier = Modifier.size(80.dp),
+                                tint = MinervaBlue
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Avatar",
+                            modifier = Modifier.size(80.dp),
+                            tint = MinervaBlue
                         )
                     }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = studentName,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = studentId,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                
+                if (personaInfo != null) {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                            Text("Información Personal", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            if (!personaInfo?.dui.isNullOrEmpty()) {
+                                ProfileDetailRow("DUI", personaInfo!!.dui!!)
+                            }
+                            if (!personaInfo?.nit.isNullOrEmpty()) {
+                                ProfileDetailRow("NIT", personaInfo!!.nit!!)
+                            }
+                            if (!personaInfo?.nacimiento.isNullOrEmpty()) {
+                                ProfileDetailRow("Fecha de Nacimiento", personaInfo!!.nacimiento!!)
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(48.dp))
+                Button(
+                    onClick = { viewModel.handleSignOut() },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.ExitToApp, contentDescription = null, tint = Color.White)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cerrar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         } else if (selectedMateria != null) {
@@ -173,7 +333,7 @@ fun DashboardScreen(
                             text = "$codigo - $nombre",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MinervaNavy
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -183,14 +343,14 @@ fun DashboardScreen(
                         )
                         Text(
                             text = "Estado: ${materia.estado}",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = MinervaGrayDark)
+                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Evaluaciones Registradas",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MinervaGrayDark
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -254,7 +414,7 @@ fun DashboardScreen(
                             text = "Notas Parciales",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = MinervaGrayDark
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -284,7 +444,7 @@ fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Uni
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -310,7 +470,7 @@ fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Uni
                     text = nombre,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold,
-                        color = MinervaGrayDark
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -340,7 +500,7 @@ fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Uni
                     Text(
                         text = "Nota Final",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = MinervaGrayDark,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 10.sp
                         )
                     )
@@ -356,7 +516,7 @@ fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -371,7 +531,7 @@ fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
                     text = evaluacion?.nombre ?: "Evaluación",
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold,
-                        color = MinervaGrayDark
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
                 Text(
@@ -398,6 +558,165 @@ fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
                 Text(
                     text = evalItem.nota?.nota?.toString() ?: "-",
                     style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MinervaBlueDark
+                    )
+                )
+            }
+        }
+    }
+  }
+}
+
+fun decodeBase64ToBitmap(base64Str: String): android.graphics.Bitmap? {
+    return try {
+        android.util.Log.d("ProfilePhoto", "Attempting to decode base64 string, original length: ${base64Str.length}")
+        val cleanBase64 = if (base64Str.contains(",")) base64Str.substringAfter(",") else base64Str
+        android.util.Log.d("ProfilePhoto", "Clean base64 length: ${cleanBase64.length}")
+        val decodedBytes = Base64.decode(cleanBase64, Base64.DEFAULT)
+        val bmp = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+        if (bmp == null) {
+            android.util.Log.e("ProfilePhoto", "BitmapFactory returned null!")
+        } else {
+            android.util.Log.d("ProfilePhoto", "Bitmap loaded: ${bmp.width}x${bmp.height}")
+        }
+        bmp
+    } catch (e: Exception) {
+        android.util.Log.e("ProfilePhoto", "Error decoding base64: ${e.message}")
+        e.printStackTrace()
+        null
+    }
+}
+
+@Composable
+fun MenuOptionCard(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(MinervaBlue.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = MinervaBlue,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Ir",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        val evaluacion = evalItem.nota?.evaluacion
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = evaluacion?.nombre ?: "Evaluación",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+                Text(
+                    text = "Ponderación: ${evaluacion?.porcentaje ?: 0.0}%",
+                    style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
+                )
+                if (evaluacion?.fecha != null) {
+                    Text(
+                        text = "Fecha: ${evaluacion.fecha} ${evaluacion.hora ?: ""}",
+                        style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
+                    )
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = MinervaBlueLight.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = evalItem.nota?.nota?.toString() ?: "-",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MinervaBlueDark
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            val nombreMateria = materiaItem.grupoPensum?.pensum?.materia?.nombre ?: "Materia desconocida"
+            Text(
+                text = nombreMateria,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    text = "Estado: ${materiaItem.estado}",
+                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                )
+                Text(
+                    text = "Nota Final: ${materiaItem.notaFinal}",
+                    style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = MinervaBlueDark
                     )

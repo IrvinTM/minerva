@@ -14,19 +14,22 @@ interface UesApiService {
     @GET("main/institucion/facultadPlanEstudio")
     suspend fun getFacultadPlanEstudio(
         @Header("K-TOKEN") kToken: String,
-        @Header("X-XSRF-TOKEN") xsrfToken: String
+        @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String
     ): Response<FacultadResponse>
 
     @GET("periodo/periodoCiclo/ciclosEstudio")
     suspend fun getCiclosEstudio(
         @Header("K-TOKEN") kToken: String,
-        @Header("X-XSRF-TOKEN") xsrfToken: String
+        @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String
     ): Response<CiclosResponse>
 
     @GET("main/nota/materias/{id_periodo}")
     suspend fun getMaterias(
         @Header("K-TOKEN") kToken: String,
         @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String,
         @Path("id_periodo") idPeriodo: Int
     ): Response<MateriasResponse>
 
@@ -34,8 +37,31 @@ interface UesApiService {
     suspend fun getEvaluaciones(
         @Header("K-TOKEN") kToken: String,
         @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String,
         @Path("id_expediente") idExpediente: Int
     ): Response<EvaluacionesResponse>
+
+    @GET("archivo/cuentaDocumento/all")
+    suspend fun getDocumentos(
+        @Header("K-TOKEN") kToken: String,
+        @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String
+    ): Response<DocumentosResponse>
+
+    @GET("archivo/archivo/fotografiaB64ArchivoDocumento")
+    suspend fun getFotografiaBase64(
+        @Header("K-TOKEN") kToken: String,
+        @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String,
+        @retrofit2.http.Query("idDocumento") idDocumento: Long
+    ): Response<FotografiaBase64Response>
+
+    @GET("main/persona/infoGeneral/0")
+    suspend fun getPersonaInfo(
+        @Header("K-TOKEN") kToken: String,
+        @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String
+    ): Response<PersonaInfoResponse>
 
     companion object {
         private const val BASE_URL = "https://mimas.ues.edu.sv/"

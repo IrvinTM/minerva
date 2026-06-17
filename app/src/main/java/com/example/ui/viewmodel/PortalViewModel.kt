@@ -74,6 +74,9 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
   private val _isExpedienteOpen = MutableStateFlow(false)
   val isExpedienteOpen: StateFlow<Boolean> = _isExpedienteOpen.asStateFlow()
 
+  private val _isPerfilOpen = MutableStateFlow(false)
+  val isPerfilOpen: StateFlow<Boolean> = _isPerfilOpen.asStateFlow()
+
   private val _selectedMateria = MutableStateFlow<com.example.network.MateriaItem?>(null)
   val selectedMateria: StateFlow<com.example.network.MateriaItem?> = _selectedMateria.asStateFlow()
 
@@ -82,6 +85,12 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
 
   private val _isLoadingEvaluaciones = MutableStateFlow(false)
   val isLoadingEvaluaciones: StateFlow<Boolean> = _isLoadingEvaluaciones.asStateFlow()
+
+  private val _profilePhotoBase64 = MutableStateFlow<String?>(null)
+  val profilePhotoBase64: StateFlow<String?> = _profilePhotoBase64.asStateFlow()
+
+  private val _personaInfo = MutableStateFlow<com.example.network.PersonaDetalle?>(null)
+  val personaInfo: StateFlow<com.example.network.PersonaDetalle?> = _personaInfo.asStateFlow()
 
   // Current screen state
   private val _currentScreen = MutableStateFlow<Screen>(Screen.Login)
@@ -169,6 +178,8 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
           _studentId.value = email.substringBefore("@")
         }
       }
+      loadPersonaInfo()
+      loadProfilePhoto()
     } catch (e: Exception) {
       e.printStackTrace()
       val u = _username.value
@@ -201,6 +212,14 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
     clearSelectedMateria()
   }
 
+  fun openPerfil() {
+    _isPerfilOpen.value = true
+  }
+
+  fun closePerfil() {
+    _isPerfilOpen.value = false
+  }
+
   fun selectMateria(materia: com.example.network.MateriaItem) {
     _selectedMateria.value = materia
     loadEvaluaciones(materia.id)
@@ -211,12 +230,87 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
     _evaluaciones.value = emptyList()
   }
 
+  private fun getAuthHeader(token: String): String = "Bearer $token"
+
+  private fun loadPersonaInfo() {
+    viewModelScope.launch {
+      val token = sessionManager.getAccessToken() ?: return@launch
+      try {
+        val res = apiService.getPersonaInfo(token, token, getAuthHeader(token))
+        if (res.isSuccessful) {
+          val persona = res.body()?.data?.persona
+          if (persona != null) {
+            _personaInfo.value = persona
+            
+            // Prefer name from infoGeneral instead of token if possible
+            val builder = StringBuilder()
+            if (!persona.nombre.isNullOrBlank()) builder.append(persona.nombre.trim()).append(" ")
+            if (!persona.apellido.isNullOrBlank()) builder.append(persona.apellido.trim())
+            
+            val fullName = builder.toString().trim()
+            if (fullName.isNotEmpty()) {
+                _studentName.value = fullName
+            } else if (!persona.apellidoCompleto.isNullOrBlank()) {
+                _studentName.value = persona.apellidoCompleto.trim()
+            }
+          }
+        }
+      } catch (e: Exception) {
+        e.printStackTrace()
+      }
+    }
+  }
+
+  private fun loadProfilePhoto() {
+    viewModelScope.launch {
+      val token = sessionManager.getAccessToken() ?: return@launch
+      try {
+        android.util.Log.d("ProfilePhoto", "Requesting all documents...")
+        val docRes = apiService.getDocumentos(token, token, getAuthHeader(token))
+        if (docRes.isSuccessful) {
+          val docList = docRes.body()?.data
+          val photoDoc = docList?.find { it.documento?.documento_tipo?.nombre == "FOTOGRAFIA" }
+          val idDoc = photoDoc?.id_documento
+          
+          android.util.Log.d("ProfilePhoto", "FOTOGRAFIA Document ID fetched: $idDoc")
+          if (idDoc != null) {
+            android.util.Log.d("ProfilePhoto", "Requesting Base64 photo for doc: $idDoc")
+            val photoRes = apiService.getFotografiaBase64(token, token, getAuthHeader(token), idDoc)
+            if (photoRes.isSuccessful) {
+              var base64Str = photoRes.body()?.data
+              
+              // Depending on the exact API response, the base64 string could be wrapped inside the data string
+              // Let's strip the data:image/jpeg;base64, prefix if it exists
+              if (base64Str != null && base64Str.startsWith("data:image")) {
+                  base64Str = base64Str.substringAfter("base64,")
+              }
+
+              android.util.Log.d("ProfilePhoto", "Base64 fetched length: ${base64Str?.length}")
+              if (!base64Str.isNullOrBlank()) {
+                _profilePhotoBase64.value = base64Str
+              } else {
+                android.util.Log.d("ProfilePhoto", "Base64 string was null or blank!")
+              }
+            } else {
+              android.util.Log.e("ProfilePhoto", "Error fetching base64: ${photoRes.code()} ${photoRes.message()}")
+            }
+          }
+        } else {
+          android.util.Log.e("ProfilePhoto", "Error fetching doc info: ${docRes.code()} ${docRes.message()}")
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("ProfilePhoto", "Exception in loadProfilePhoto: ${e.message}")
+        e.printStackTrace()
+      }
+    }
+  }
+
   private fun loadEvaluaciones(idExpediente: Int) {
     viewModelScope.launch {
       val token = sessionManager.getAccessToken() ?: return@launch
       _isLoadingEvaluaciones.value = true
       try {
-        val response = apiService.getEvaluaciones(token, token, idExpediente)
+        val response = apiService.getEvaluaciones(token, token, getAuthHeader(token), idExpediente)
         if (response.isSuccessful) {
           _evaluaciones.value = response.body()?.data ?: emptyList()
         }
@@ -233,19 +327,19 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
       val token = sessionManager.getAccessToken() ?: return@launch
       _isLoadingExpediente.value = true
       try {
-        val facRes = apiService.getFacultadPlanEstudio(token, token)
+        val facRes = apiService.getFacultadPlanEstudio(token, token, getAuthHeader(token))
         if (facRes.isSuccessful) {
           _facultad.value = facRes.body()?.data
         }
 
-        val ciclosRes = apiService.getCiclosEstudio(token, token)
+        val ciclosRes = apiService.getCiclosEstudio(token, token, getAuthHeader(token))
         if (ciclosRes.isSuccessful) {
           val ciclos = ciclosRes.body()?.data ?: emptyList()
           // Pick the most recent ciclo
           val currentCiclo = ciclos.maxByOrNull { it.idPeriodo }
           
           if (currentCiclo != null) {
-            val materiasRes = apiService.getMaterias(token, token, currentCiclo.idPeriodo)
+            val materiasRes = apiService.getMaterias(token, token, getAuthHeader(token), currentCiclo.idPeriodo)
             if (materiasRes.isSuccessful) {
               _materias.value = materiasRes.body()?.data ?: emptyList()
             }
