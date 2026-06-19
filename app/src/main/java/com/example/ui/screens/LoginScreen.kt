@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -75,6 +76,8 @@ import com.example.ui.theme.MinervaGrayDark
 import com.example.ui.theme.MinervaGrayMedium
 import com.example.ui.theme.MinervaGold
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.res.painterResource
+import com.example.R
 import com.example.ui.viewmodel.PortalViewModel
 
 @Composable
@@ -115,8 +118,10 @@ fun LoginScreen(
         
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Programmatic academic logo
-        MinervaCrestLogo(
+        // University Academic Logo
+        Image(
+          painter = painterResource(id = R.drawable.ic_login_logo),
+          contentDescription = "Minerva Logo",
           modifier = Modifier
             .size(110.dp)
             .padding(bottom = 12.dp)
@@ -135,7 +140,7 @@ fun LoginScreen(
         )
 
         Text(
-          text = "PORTAL ACADÉMICO UNIVERSITARIO",
+          text = "EXPEDIENTE EN LINEA",
           style = MaterialTheme.typography.bodySmall.copy(
             fontWeight = FontWeight.SemiBold,
             letterSpacing = 1.5.sp,
@@ -176,7 +181,7 @@ fun LoginScreen(
             )
 
             Text(
-              text = "Ingresa tus credenciales oficiales de estudiante para acceder al portal.",
+              text = "Ingresa tus credenciales",
               style = MaterialTheme.typography.bodyMedium.copy(
                 color = MinervaGrayMedium
               ),
@@ -230,8 +235,8 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .padding(bottom = 16.dp)
                 .testTag("username_input"),
-              label = { Text("Usuario o Correo Institucional") },
-              placeholder = { Text("ej. s123456 o estudiante@minerva.edu") },
+              label = { Text("Usuario") },
+              placeholder = { Text("ej. tt23023") },
               leadingIcon = {
                 Icon(
                   imageVector = Icons.Default.Person,
@@ -264,7 +269,7 @@ fun LoginScreen(
                 .fillMaxWidth()
                 .padding(bottom = 12.dp)
                 .testTag("password_input"),
-              label = { Text("Contraseña del Portal") },
+              label = { Text("Contraseña") },
               leadingIcon = {
                 Icon(
                   imageVector = Icons.Default.Lock,
@@ -383,7 +388,7 @@ fun LoginScreen(
           )
           Spacer(modifier = Modifier.width(10.dp))
           Text(
-            text = "El Portal MINERVA utiliza autenticación cifrada de doble factor para garantizar la privacidad académica bajo una conexión segura.",
+            text = "...",
             style = MaterialTheme.typography.bodySmall.copy(
               color = MinervaBlueDark,
               lineHeight = 16.sp
@@ -396,7 +401,7 @@ fun LoginScreen(
         
         // Portal quick-demo advisory note
         Text(
-          text = "Modo de Demostración Rápida: Ingresa cualquier credencial (ej. estudiante@minerva.edu / 12345) para probar.",
+          text = "Tener en cuenta que la app esta en desarrollo",
           style = MaterialTheme.typography.bodySmall.copy(
             color = MinervaGrayMedium,
             textAlign = TextAlign.Center
@@ -407,124 +412,5 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(40.dp))
       }
     }
-  }
-}
-
-// Beautiful customized vector badge logo depicting goddess Minerva of El Salvador
-@Composable
-fun MinervaCrestLogo(modifier: Modifier = Modifier) {
-  Canvas(modifier = modifier) {
-    val sizePx = size.width
-    val center = Offset(sizePx / 2f, sizePx / 2f)
-    
-    // Radial gradient brush for the background shield disk
-    val brush = Brush.radialGradient(
-      colors = listOf(MinervaBlue, MinervaBlueDark),
-      center = center,
-      radius = sizePx * 0.7f
-    )
-
-    // Draw background outer circle/oval seal base
-    drawCircle(
-      brush = brush,
-      radius = sizePx * 0.48f,
-      center = center
-    )
-
-    // Concentric gold outer border
-    drawCircle(
-      color = MinervaGold,
-      radius = sizePx * 0.45f,
-      center = center,
-      style = Stroke(width = sizePx * 0.025f)
-    )
-
-    // Concentric gold inner border
-    drawCircle(
-      color = MinervaGold,
-      radius = sizePx * 0.40f,
-      center = center,
-      style = Stroke(width = sizePx * 0.01f)
-    )
-
-    // Draw stylized Greek Temple / Minerva classical emblem in White
-    // Drawing classical Minerva profile with simple elegant overlapping paths
-    val p = Path().apply {
-      // Crown cap
-      moveTo(sizePx * 0.48f, sizePx * 0.28f)
-      quadraticTo(sizePx * 0.38f, sizePx * 0.28f, sizePx * 0.36f, sizePx * 0.38f)
-      quadraticTo(sizePx * 0.36f, sizePx * 0.44f, sizePx * 0.42f, sizePx * 0.44f)
-      quadraticTo(sizePx * 0.48f, sizePx * 0.40f, sizePx * 0.54f, sizePx * 0.38f)
-      quadraticTo(sizePx * 0.58f, sizePx * 0.32f, sizePx * 0.48f, sizePx * 0.28f)
-    }
-    drawPath(p, color = Color.White)
-
-    // Nose, lips and head profile
-    val profilePath = Path().apply {
-      moveTo(sizePx * 0.44f, sizePx * 0.36f)
-      lineTo(sizePx * 0.40f, sizePx * 0.44f) // forehead line
-      quadraticTo(sizePx * 0.38f, sizePx * 0.48f, sizePx * 0.35f, sizePx * 0.52f) // Nose tip
-      lineTo(sizePx * 0.40f, sizePx * 0.53f) // Nose base
-      quadraticTo(sizePx * 0.37f, sizePx * 0.55f, sizePx * 0.36f, sizePx * 0.57f) // Lips
-      lineTo(sizePx * 0.41f, sizePx * 0.58f)
-      quadraticTo(sizePx * 0.38f, sizePx * 0.62f, sizePx * 0.42f, sizePx * 0.65f) // Chin
-      quadraticTo(sizePx * 0.46f, sizePx * 0.65f, sizePx * 0.48f, sizePx * 0.60f) // Neck
-      lineTo(sizePx * 0.58f, sizePx * 0.68f) // Shoulder
-      lineTo(sizePx * 0.58f, sizePx * 0.46f)
-      lineTo(sizePx * 0.48f, sizePx * 0.36f)
-      close()
-    }
-    drawPath(profilePath, color = Color.White)
-
-    // Classic hair roll back bun
-    drawCircle(
-      color = Color.White,
-      radius = sizePx * 0.08f,
-      center = Offset(sizePx * 0.58f, sizePx * 0.48f)
-    )
-    drawCircle(
-      color = Color.White,
-      radius = sizePx * 0.05f,
-      center = Offset(sizePx * 0.64f, sizePx * 0.52f)
-    )
-
-    // Shoulder/Toga base plate
-    val togaPath = Path().apply {
-      moveTo(sizePx * 0.40f, sizePx * 0.64f)
-      quadraticTo(sizePx * 0.38f, sizePx * 0.72f, sizePx * 0.46f, sizePx * 0.76f)
-      quadraticTo(sizePx * 0.54f, sizePx * 0.76f, sizePx * 0.64f, sizePx * 0.70f)
-      quadraticTo(sizePx * 0.62f, sizePx * 0.60f, sizePx * 0.48f, sizePx * 0.62f)
-      close()
-    }
-    drawPath(togaPath, color = Color.White)
-
-    // Surrounding Laurel Leaf Wreaths in Gold
-    val laurelPathLeft = Path().apply {
-      moveTo(sizePx * 0.20f, sizePx * 0.50f)
-      quadraticTo(sizePx * 0.20f, sizePx * 0.72f, sizePx * 0.50f, sizePx * 0.82f)
-    }
-    val laurelPathRight = Path().apply {
-      moveTo(sizePx * 0.80f, sizePx * 0.50f)
-      quadraticTo(sizePx * 0.80f, sizePx * 0.72f, sizePx * 0.50f, sizePx * 0.82f)
-    }
-    drawPath(
-      path = laurelPathLeft,
-      color = MinervaGold,
-      style = Stroke(width = sizePx * 0.015f, cap = StrokeCap.Round)
-    )
-    drawPath(
-      path = laurelPathRight,
-      color = MinervaGold,
-      style = Stroke(width = sizePx * 0.015f, cap = StrokeCap.Round)
-    )
-
-    // Tiny decorative leaves
-    drawCircle(color = MinervaGold, radius = sizePx * 0.025f, center = Offset(sizePx * 0.22f, sizePx * 0.55f))
-    drawCircle(color = MinervaGold, radius = sizePx * 0.025f, center = Offset(sizePx * 0.26f, sizePx * 0.65f))
-    drawCircle(color = MinervaGold, radius = sizePx * 0.025f, center = Offset(sizePx * 0.34f, sizePx * 0.73f))
-
-    drawCircle(color = MinervaGold, radius = sizePx * 0.025f, center = Offset(sizePx * 0.78f, sizePx * 0.55f))
-    drawCircle(color = MinervaGold, radius = sizePx * 0.025f, center = Offset(sizePx * 0.74f, sizePx * 0.65f))
-    drawCircle(color = MinervaGold, radius = sizePx * 0.026f, center = Offset(sizePx * 0.66f, sizePx * 0.73f))
   }
 }

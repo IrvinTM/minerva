@@ -2,20 +2,29 @@
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
-# Run and deploy your AI Studio app
+# Minerva
 
-This contains everything you need to run your app locally.
+Este es un proyecto **Open Source** desarrollado para facilitar el acceso a la plataforma académica. Se ha desarrollado utilizando **ingeniería inversa** con la API de la web `eel.ues.edu.sv`.
 
-View your app in AI Studio: https://ai.studio/apps/786e330b-633f-4883-9654-8a8e034f4d51
+¡Las PR son bienvenidas! Siéntete libre de contribuir para mejorar la aplicación.
 
-## Run Locally
+## Ejecución Local
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+**Requisitos previos:** [Android Studio](https://developer.android.com/studio)
 
+1. **Clonar el proyecto:** Descarga o clona este repositorio en tu máquina local.
+2. **Abrir en Android Studio:**
+   - Abre Android Studio.
+   - Selecciona **Open** (Abrir) y elige el directorio que contiene este proyecto.
+3. **Sincronización de Gradle:** Permite que Android Studio descargue las dependencias y sincronice el proyecto. Si solicita corregir incompatibilidades, acéptalas.
+4. **Configuración de variables de entorno:**
+   - Crea un archivo llamado `.env` en la raíz del proyecto (opcional).
+   - Copia el contenido de `.env.example` si necesitas configurar variables locales.
+5. **Ejecutar:**
+   - Conecta un dispositivo físico o inicia un emulador.
+   - Haz clic en el botón **Run** (Ejecutar) en Android Studio.
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
+---
+
+### Notas de Desarrollo
+Este proyecto es un esfuerzo comunitario. No está afiliado oficialmente con la institución.
