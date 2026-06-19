@@ -1,7 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
-
 # Minerva
 
 Este es un proyecto **Open Source** desarrollado para facilitar el acceso a la plataforma académica. Se ha desarrollado utilizando **ingeniería inversa** con la API de la web `eel.ues.edu.sv`.
