@@ -1,18 +1,43 @@
+# Built objects
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Build artifacts
+build/
+app/build/
+.gradle/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE files
 *.iml
-.gradle
-.kotlin
+.idea/
+!.idea/codeStyles/
+!.idea/copyright/
+!.idea/inspectionProfiles/
+!.idea/vcs.xml
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+
+# Secrets and local config
 .env
-debug.keystore
+local.properties
+*.jks
+*.keystore
+!debug.keystore # Usually shared in some projects, but better to ignore if generated locally.
+               # Given the previous error, it's safer to ignore it.
+
+# Log files
+*.log
+
+# OS generated files
+ehthumbs.db
+Thumbs.db
+
+# Android Studio / IntelliJ
+*.iws
+out/
