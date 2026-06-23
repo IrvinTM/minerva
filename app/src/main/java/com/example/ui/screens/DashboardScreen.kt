@@ -458,6 +458,7 @@ fun DashboardScreen(
     }
   }
 }
+}
 
 @Composable
 fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Unit) {
@@ -587,7 +588,6 @@ fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
         }
     }
   }
-}
 
 @Composable
 fun RecordNotasContent(recordNotas: List<com.example.network.RecordItem>) {
