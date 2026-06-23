@@ -86,6 +86,15 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
   private val _isLoadingEvaluaciones = MutableStateFlow(false)
   val isLoadingEvaluaciones: StateFlow<Boolean> = _isLoadingEvaluaciones.asStateFlow()
 
+  private val _recordNotas = MutableStateFlow<List<com.example.network.RecordItem>>(emptyList())
+  val recordNotas: StateFlow<List<com.example.network.RecordItem>> = _recordNotas.asStateFlow()
+
+  private val _isLoadingRecord = MutableStateFlow(false)
+  val isLoadingRecord: StateFlow<Boolean> = _isLoadingRecord.asStateFlow()
+
+  private val _expedienteTab = MutableStateFlow(0)
+  val expedienteTab: StateFlow<Int> = _expedienteTab.asStateFlow()
+
   private val _profilePhotoBase64 = MutableStateFlow<String?>(null)
   val profilePhotoBase64: StateFlow<String?> = _profilePhotoBase64.asStateFlow()
 
@@ -209,7 +218,15 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
 
   fun closeExpediente() {
     _isExpedienteOpen.value = false
+    _expedienteTab.value = 0
     clearSelectedMateria()
+  }
+
+  fun setExpedienteTab(tab: Int) {
+    _expedienteTab.value = tab
+    if (tab == 1 && _recordNotas.value.isEmpty()) {
+      loadRecordNotas()
+    }
   }
 
   fun openPerfil() {
@@ -349,6 +366,26 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
         e.printStackTrace()
       } finally {
         _isLoadingExpediente.value = false
+      }
+    }
+  }
+
+  private fun loadRecordNotas() {
+    viewModelScope.launch {
+      val token = sessionManager.getAccessToken() ?: return@launch
+      _isLoadingRecord.value = true
+      try {
+        val response = apiService.getRecordNotas(token, token, getAuthHeader(token))
+        if (response.isSuccessful) {
+          val allRecords = response.body()?.data
+              ?.flatMap { it.record ?: emptyList() }
+              ?: emptyList()
+          _recordNotas.value = allRecords
+        }
+      } catch (e: Exception) {
+        e.printStackTrace()
+      } finally {
+        _isLoadingRecord.value = false
       }
     }
   }

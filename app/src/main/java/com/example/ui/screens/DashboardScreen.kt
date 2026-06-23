@@ -31,6 +31,7 @@ import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.History
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,6 +59,9 @@ fun DashboardScreen(
   val selectedMateria by viewModel.selectedMateria.collectAsState()
   val isPerfilOpen by viewModel.isPerfilOpen.collectAsState()
   val profilePhotoBase64 by viewModel.profilePhotoBase64.collectAsState()
+  val expedienteTab by viewModel.expedienteTab.collectAsState()
+  val recordNotas by viewModel.recordNotas.collectAsState()
+  val isLoadingRecord by viewModel.isLoadingRecord.collectAsState()
 
   val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
   val coroutineScope = rememberCoroutineScope()
@@ -370,66 +374,83 @@ fun DashboardScreen(
                 }
             }
         } else {
-            // Expediente content
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MinervaBlue)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            // Expediente content with tabs
+            Column(modifier = Modifier.fillMaxSize()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = MinervaNavy),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = MinervaNavy),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = facultad?.institucionPadre?.nombre ?: "",
-                                    style = MaterialTheme.typography.labelMedium.copy(color = MinervaBlueLight)
-                                )
-                                Text(
-                                    text = facultad?.nombre ?: "Facultad desconocida",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                val carrera = materias.firstOrNull()?.grupoPensum?.pensum?.planEstudio?.carrera?.nombre ?: "Carrera no especificada"
-                                Text(
-                                    text = carrera,
-                                    style = MaterialTheme.typography.bodyMedium.copy(color = MinervaBlueLight)
-                                )
-                            }
-                        }
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Notas Parciales",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = facultad?.institucionPadre?.nombre ?: "",
+                            style = MaterialTheme.typography.labelMedium.copy(color = MinervaBlueLight)
+                        )
+                        Text(
+                            text = facultad?.nombre ?: "Facultad desconocida",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
                             )
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+                        val carrera = materias.firstOrNull()?.grupoPensum?.pensum?.planEstudio?.carrera?.nombre ?: "Carrera no especificada"
+                        Text(
+                            text = carrera,
+                            style = MaterialTheme.typography.bodyMedium.copy(color = MinervaBlueLight)
+                        )
                     }
+                }
 
-                    items(materias) { materiaItem ->
-                        MateriaCard(materiaItem = materiaItem, onClick = { viewModel.selectMateria(materiaItem) })
-                    }
-                    
-                    if (materias.isEmpty() && !isLoading) {
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text(text = "No se encontraron materias inscritas.", color = MinervaGrayMedium)
+                TabRow(
+                    selectedTabIndex = expedienteTab,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MinervaBlue,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Tab(
+                        selected = expedienteTab == 0,
+                        onClick = { viewModel.setExpedienteTab(0) },
+                        text = { Text("Notas Parciales", fontWeight = if (expedienteTab == 0) FontWeight.Bold else FontWeight.Normal) },
+                        icon = { Icon(Icons.Default.Assignment, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    )
+                    Tab(
+                        selected = expedienteTab == 1,
+                        onClick = { viewModel.setExpedienteTab(1) },
+                        text = { Text("Record de Notas", fontWeight = if (expedienteTab == 1) FontWeight.Bold else FontWeight.Normal) },
+                        icon = { Icon(Icons.Default.History, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    )
+                }
+
+                if (expedienteTab == 0) {
+                    if (isLoading) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = MinervaBlue)
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize().padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(materias) { materiaItem ->
+                                MateriaCard(materiaItem = materiaItem, onClick = { viewModel.selectMateria(materiaItem) })
+                            }
+                            if (materias.isEmpty() && !isLoading) {
+                                item {
+                                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                                        Text(text = "No se encontraron materias inscritas.", color = MinervaGrayMedium)
+                                    }
+                                }
                             }
                         }
+                    }
+                } else {
+                    if (isLoadingRecord) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = MinervaBlue)
+                        }
+                    } else {
+                        RecordNotasContent(recordNotas = recordNotas)
                     }
                 }
             }
@@ -568,6 +589,145 @@ fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
   }
 }
 
+@Composable
+fun RecordNotasContent(recordNotas: List<com.example.network.RecordItem>) {
+    val grouped = remember(recordNotas) {
+        recordNotas
+            .groupBy { item ->
+                val pc = item.periodoCiclo
+                if (pc != null) "Ciclo ${pc.ciclo} - ${pc.anho}" else "Sin periodo"
+            }
+            .toSortedMap(compareByDescending { key ->
+                val parts = key.replace("Ciclo ", "").split(" - ")
+                val anho = parts.getOrNull(1)?.toIntOrNull() ?: 0
+                val cicloOrder = when (parts.getOrNull(0)) {
+                    "I" -> 0; "P" -> 1; else -> 2
+                }
+                anho * 10 + cicloOrder
+            })
+    }
+
+    if (recordNotas.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+            Text(text = "No se encontraron registros.", color = MinervaGrayMedium)
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            grouped.forEach { (cicloLabel, items) ->
+                item {
+                    Text(
+                        text = cicloLabel,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MinervaBlue
+                        ),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                items(items) { record ->
+                    RecordMateriaCard(record)
+                }
+            }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+        }
+    }
+}
+
+@Composable
+fun RecordMateriaCard(record: com.example.network.RecordItem) {
+    val codigo = record.pensum?.codigo ?: ""
+    val nombre = record.materia?.nombre ?: "Materia desconocida"
+    val uv = record.pensum?.uv ?: 0
+    val nota = record.expediente?.nota_final
+    val estado = record.expediente?.estado ?: ""
+    val tipoPensum = record.pensumTipo?.nombre ?: ""
+
+    val estadoLabel = when (estado) {
+        "AP" -> "Aprobada"
+        "RP" -> "Reprobada"
+        "EC" -> "En curso"
+        "RT" -> "Retirada"
+        else -> estado
+    }
+    val estadoColor = when (estado) {
+        "AP" -> Color(0xFF2E7D32)
+        "RP" -> Color(0xFFC62828)
+        "EC" -> MinervaBlue
+        "RT" -> MinervaGrayMedium
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = codigo,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MinervaBlue
+                    )
+                )
+                Text(
+                    text = nombre,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "$uv UV",
+                        style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
+                    )
+                    Text(
+                        text = tipoPensum,
+                        style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
+                    )
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = estadoColor.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = nota?.let { String.format("%.1f", it) } ?: "-",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = estadoColor
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = estadoLabel,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = estadoColor,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            }
+        }
+    }
+}
+
 fun decodeBase64ToBitmap(base64Str: String): android.graphics.Bitmap? {
     return try {
         android.util.Log.d("ProfilePhoto", "Attempting to decode base64 string, original length: ${base64Str.length}")
@@ -635,93 +795,3 @@ fun MenuOptionCard(title: String, icon: androidx.compose.ui.graphics.vector.Imag
     }
 }
 
-@Composable
-fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        val evaluacion = evalItem.nota?.evaluacion
-        Row(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = evaluacion?.nombre ?: "Evaluación",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-                Text(
-                    text = "Ponderación: ${evaluacion?.porcentaje ?: 0.0}%",
-                    style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
-                )
-                if (evaluacion?.fecha != null) {
-                    Text(
-                        text = "Fecha: ${evaluacion.fecha} ${evaluacion.hora ?: ""}",
-                        style = MaterialTheme.typography.bodySmall.copy(color = MinervaGrayMedium)
-                    )
-                }
-            }
-            
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = MinervaBlueLight.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = evalItem.nota?.nota?.toString() ?: "-",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MinervaBlueDark
-                    )
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            val nombreMateria = materiaItem.grupoPensum?.pensum?.materia?.nombre ?: "Materia desconocida"
-            Text(
-                text = nombreMateria,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    text = "Estado: ${materiaItem.estado}",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
-                )
-                Text(
-                    text = "Nota Final: ${materiaItem.notaFinal}",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MinervaBlueDark
-                    )
-                )
-            }
-        }
-    }
-}

@@ -63,6 +63,13 @@ interface UesApiService {
         @Header("Authorization") auth: String
     ): Response<PersonaInfoResponse>
 
+    @GET("main/expediente/record")
+    suspend fun getRecordNotas(
+        @Header("K-TOKEN") kToken: String,
+        @Header("X-XSRF-TOKEN") xsrfToken: String,
+        @Header("Authorization") auth: String
+    ): Response<RecordNotasResponse>
+
     companion object {
         private const val BASE_URL = "https://mimas.ues.edu.sv/"
 
