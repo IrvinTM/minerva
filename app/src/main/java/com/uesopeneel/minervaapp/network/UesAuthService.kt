@@ -1,4 +1,4 @@
-package com.example.network
+package com.uesopeneel.minervaapp.network
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

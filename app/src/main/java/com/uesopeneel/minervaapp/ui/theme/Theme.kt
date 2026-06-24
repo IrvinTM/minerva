@@ -1,4 +1,4 @@
-package com.example.ui.theme
+package com.uesopeneel.minervaapp.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

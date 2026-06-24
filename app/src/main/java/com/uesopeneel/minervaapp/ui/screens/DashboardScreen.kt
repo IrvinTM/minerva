@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.uesopeneel.minervaapp.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.*
-import com.example.ui.viewmodel.PortalViewModel
+import com.uesopeneel.minervaapp.ui.theme.*
+import com.uesopeneel.minervaapp.ui.viewmodel.PortalViewModel
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -461,7 +461,7 @@ fun DashboardScreen(
 }
 
 @Composable
-fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Unit) {
+fun MateriaCard(materiaItem: com.uesopeneel.minervaapp.network.MateriaItem, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -533,7 +533,7 @@ fun MateriaCard(materiaItem: com.example.network.MateriaItem, onClick: () -> Uni
 }
 
 @Composable
-fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
+fun EvaluacionCard(evalItem: com.uesopeneel.minervaapp.network.EvaluacionDataItem) {
     val evaluacion = evalItem.nota?.evaluacion
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -590,7 +590,7 @@ fun EvaluacionCard(evalItem: com.example.network.EvaluacionDataItem) {
   }
 
 @Composable
-fun RecordNotasContent(recordNotas: List<com.example.network.RecordItem>) {
+fun RecordNotasContent(recordNotas: List<com.uesopeneel.minervaapp.network.RecordItem>) {
     val grouped = remember(recordNotas) {
         recordNotas
             .groupBy { item ->
@@ -637,7 +637,7 @@ fun RecordNotasContent(recordNotas: List<com.example.network.RecordItem>) {
 }
 
 @Composable
-fun RecordMateriaCard(record: com.example.network.RecordItem) {
+fun RecordMateriaCard(record: com.uesopeneel.minervaapp.network.RecordItem) {
     val codigo = record.pensum?.codigo ?: ""
     val nombre = record.materia?.nombre ?: "Materia desconocida"
     val uv = record.pensum?.uv ?: 0

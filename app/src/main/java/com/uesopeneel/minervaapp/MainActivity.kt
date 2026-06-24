@@ -1,4 +1,4 @@
-package com.example
+package com.uesopeneel.minervaapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,11 +12,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ui.screens.DashboardScreen
-import com.example.ui.screens.LoginScreen
-import com.example.ui.theme.MinervaTheme
-import com.example.ui.viewmodel.PortalViewModel
-import com.example.ui.viewmodel.Screen
+import com.uesopeneel.minervaapp.ui.screens.DashboardScreen
+import com.uesopeneel.minervaapp.ui.screens.LoginScreen
+import com.uesopeneel.minervaapp.ui.theme.MinervaTheme
+import com.uesopeneel.minervaapp.ui.viewmodel.PortalViewModel
+import com.uesopeneel.minervaapp.ui.viewmodel.Screen
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {

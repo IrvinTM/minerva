@@ -1,4 +1,4 @@
-package com.example.utils
+package com.uesopeneel.minervaapp.utils
 
 import android.content.Context
 import android.content.SharedPreferences

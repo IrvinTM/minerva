@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.uesopeneel.minervaapp.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -69,16 +69,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.MinervaBlue
-import com.example.ui.theme.MinervaBlueDark
-import com.example.ui.theme.MinervaBlueLight
-import com.example.ui.theme.MinervaGrayDark
-import com.example.ui.theme.MinervaGrayMedium
-import com.example.ui.theme.MinervaGold
+import com.uesopeneel.minervaapp.ui.theme.MinervaBlue
+import com.uesopeneel.minervaapp.ui.theme.MinervaBlueDark
+import com.uesopeneel.minervaapp.ui.theme.MinervaBlueLight
+import com.uesopeneel.minervaapp.ui.theme.MinervaGrayDark
+import com.uesopeneel.minervaapp.ui.theme.MinervaGrayMedium
+import com.uesopeneel.minervaapp.ui.theme.MinervaGold
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.res.painterResource
-import com.example.R
-import com.example.ui.viewmodel.PortalViewModel
+import com.uesopeneel.minervaapp.R
+import com.uesopeneel.minervaapp.ui.viewmodel.PortalViewModel
 
 @Composable
 fun LoginScreen(

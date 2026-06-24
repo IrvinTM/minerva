@@ -1,4 +1,4 @@
-package com.example.network
+package com.uesopeneel.minervaapp.network
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
