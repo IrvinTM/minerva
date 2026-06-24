@@ -1,7 +1,6 @@
 package com.uesopeneel.minervaapp.network
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import com.uesopeneel.minervaapp.network.model.TokenResponse
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
@@ -11,14 +10,6 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
-
-@JsonClass(generateAdapter = true)
-data class TokenResponse(
-    @Json(name = "access_token") val accessToken: String,
-    @Json(name = "expires_in") val expiresIn: Long?,
-    @Json(name = "refresh_token") val refreshToken: String?,
-    @Json(name = "token_type") val tokenType: String?
-)
 
 interface UesAuthService {
     @FormUrlEncoded

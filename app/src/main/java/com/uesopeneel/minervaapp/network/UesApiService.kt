@@ -1,5 +1,6 @@
 package com.uesopeneel.minervaapp.network
 
+import com.uesopeneel.minervaapp.network.model.*
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response

@@ -4,7 +4,11 @@ import android.app.Application
 import android.util.Base64
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.uesopeneel.minervaapp.navigation.Screen
+import com.uesopeneel.minervaapp.network.UesApiService
 import com.uesopeneel.minervaapp.network.UesAuthService
+import com.uesopeneel.minervaapp.network.model.*
+import com.uesopeneel.minervaapp.ui.model.*
 import com.uesopeneel.minervaapp.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,61 +16,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-// Screen navigation states
-sealed class Screen {
-  object Login : Screen()
-  object Dashboard : Screen()
-}
-
-// Data Classes for Academic Portal
-data class CourseGrade(
-  val courseCode: String,
-  val courseName: String,
-  val instructor: String,
-  val currentGrade: Double,
-  val letterGrade: String,
-  val credits: Int,
-  val assignments: List<AssignmentGrade>,
-  val colorHex: Long
-)
-
-data class AssignmentGrade(
-  val name: String,
-  val category: String, // Exam, Homework, Quiz, Project
-  val score: Double,
-  val maxScore: Double,
-  val weight: Double // Percentage of final grade
-)
-
-data class ScheduleItem(
-  val courseCode: String,
-  val courseName: String,
-  val room: String,
-  val weekday: String, // "Mon", "Tue", etc.
-  val timeSlot: String,
-  val instructor: String
-)
-
-data class AcademicNotification(
-  val id: Int,
-  val title: String,
-  val message: String,
-  val date: String,
-  val category: String // "Grade", "Alert", "Info"
-)
-
 class PortalViewModel(application: Application) : AndroidViewModel(application) {
 
   private val sessionManager = SessionManager(application)
   private val authService = UesAuthService.create()
 
-  private val apiService = com.uesopeneel.minervaapp.network.UesApiService.create()
+  private val apiService = UesApiService.create()
 
-  private val _facultad = MutableStateFlow<com.uesopeneel.minervaapp.network.FacultadData?>(null)
-  val facultad: StateFlow<com.uesopeneel.minervaapp.network.FacultadData?> = _facultad.asStateFlow()
+  private val _facultad = MutableStateFlow<FacultadData?>(null)
+  val facultad: StateFlow<FacultadData?> = _facultad.asStateFlow()
 
-  private val _materias = MutableStateFlow<List<com.uesopeneel.minervaapp.network.MateriaItem>>(emptyList())
-  val materias: StateFlow<List<com.uesopeneel.minervaapp.network.MateriaItem>> = _materias.asStateFlow()
+  private val _materias = MutableStateFlow<List<MateriaItem>>(emptyList())
+  val materias: StateFlow<List<MateriaItem>> = _materias.asStateFlow()
 
   private val _isLoadingExpediente = MutableStateFlow(false)
   val isLoadingExpediente: StateFlow<Boolean> = _isLoadingExpediente.asStateFlow()
@@ -77,17 +38,17 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
   private val _isPerfilOpen = MutableStateFlow(false)
   val isPerfilOpen: StateFlow<Boolean> = _isPerfilOpen.asStateFlow()
 
-  private val _selectedMateria = MutableStateFlow<com.uesopeneel.minervaapp.network.MateriaItem?>(null)
-  val selectedMateria: StateFlow<com.uesopeneel.minervaapp.network.MateriaItem?> = _selectedMateria.asStateFlow()
+  private val _selectedMateria = MutableStateFlow<MateriaItem?>(null)
+  val selectedMateria: StateFlow<MateriaItem?> = _selectedMateria.asStateFlow()
 
-  private val _evaluaciones = MutableStateFlow<List<com.uesopeneel.minervaapp.network.EvaluacionDataItem>>(emptyList())
-  val evaluaciones: StateFlow<List<com.uesopeneel.minervaapp.network.EvaluacionDataItem>> = _evaluaciones.asStateFlow()
+  private val _evaluaciones = MutableStateFlow<List<EvaluacionDataItem>>(emptyList())
+  val evaluaciones: StateFlow<List<EvaluacionDataItem>> = _evaluaciones.asStateFlow()
 
   private val _isLoadingEvaluaciones = MutableStateFlow(false)
   val isLoadingEvaluaciones: StateFlow<Boolean> = _isLoadingEvaluaciones.asStateFlow()
 
-  private val _recordNotas = MutableStateFlow<List<com.uesopeneel.minervaapp.network.RecordItem>>(emptyList())
-  val recordNotas: StateFlow<List<com.uesopeneel.minervaapp.network.RecordItem>> = _recordNotas.asStateFlow()
+  private val _recordNotas = MutableStateFlow<List<RecordItem>>(emptyList())
+  val recordNotas: StateFlow<List<RecordItem>> = _recordNotas.asStateFlow()
 
   private val _isLoadingRecord = MutableStateFlow(false)
   val isLoadingRecord: StateFlow<Boolean> = _isLoadingRecord.asStateFlow()
@@ -98,8 +59,8 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
   private val _profilePhotoBase64 = MutableStateFlow<String?>(null)
   val profilePhotoBase64: StateFlow<String?> = _profilePhotoBase64.asStateFlow()
 
-  private val _personaInfo = MutableStateFlow<com.uesopeneel.minervaapp.network.PersonaDetalle?>(null)
-  val personaInfo: StateFlow<com.uesopeneel.minervaapp.network.PersonaDetalle?> = _personaInfo.asStateFlow()
+  private val _personaInfo = MutableStateFlow<PersonaDetalle?>(null)
+  val personaInfo: StateFlow<PersonaDetalle?> = _personaInfo.asStateFlow()
 
   // Current screen state
   private val _currentScreen = MutableStateFlow<Screen>(Screen.Login)
@@ -237,7 +198,7 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
     _isPerfilOpen.value = false
   }
 
-  fun selectMateria(materia: com.uesopeneel.minervaapp.network.MateriaItem) {
+  fun selectMateria(materia: MateriaItem) {
     _selectedMateria.value = materia
     loadEvaluaciones(materia.id)
   }

@@ -16,7 +16,7 @@ import com.uesopeneel.minervaapp.ui.screens.DashboardScreen
 import com.uesopeneel.minervaapp.ui.screens.LoginScreen
 import com.uesopeneel.minervaapp.ui.theme.MinervaTheme
 import com.uesopeneel.minervaapp.ui.viewmodel.PortalViewModel
-import com.uesopeneel.minervaapp.ui.viewmodel.Screen
+import com.uesopeneel.minervaapp.navigation.Screen
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
