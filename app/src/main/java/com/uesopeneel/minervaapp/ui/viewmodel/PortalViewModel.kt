@@ -120,10 +120,39 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
     val savedToken = sessionManager.getAccessToken()
     val savedUsername = sessionManager.getUsername()
     if (savedToken != null && savedUsername != null) {
+      if (isTokenExpired(savedToken)) {
+        sessionManager.clearSession()
+        _username.value = savedUsername
+        _authError.value = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."
+        return
+      }
       _username.value = savedUsername
       processSuccessfulToken(savedToken)
       _currentScreen.value = Screen.Dashboard
     }
+  }
+
+  private fun isTokenExpired(token: String): Boolean {
+    return try {
+      val parts = token.split(".")
+      if (parts.size < 2) return true
+      val payload = parts[1]
+      val decodedBytes = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+      val json = JSONObject(String(decodedBytes, Charsets.UTF_8))
+      val exp = json.optLong("exp", 0L)
+      if (exp == 0L) return true
+      val nowSeconds = System.currentTimeMillis() / 1000
+      nowSeconds >= exp
+    } catch (e: Exception) {
+      true
+    }
+  }
+
+  private fun handleSessionExpired() {
+    sessionManager.clearSession()
+    _password.value = ""
+    _authError.value = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."
+    _currentScreen.value = Screen.Login
   }
 
   private fun processSuccessfulToken(token: String) {
@@ -219,12 +248,11 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
           val persona = res.body()?.data?.persona
           if (persona != null) {
             _personaInfo.value = persona
-            
-            // Prefer name from infoGeneral instead of token if possible
+
             val builder = StringBuilder()
             if (!persona.nombre.isNullOrBlank()) builder.append(persona.nombre.trim()).append(" ")
             if (!persona.apellido.isNullOrBlank()) builder.append(persona.apellido.trim())
-            
+
             val fullName = builder.toString().trim()
             if (fullName.isNotEmpty()) {
                 _studentName.value = fullName
@@ -232,6 +260,8 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
                 _studentName.value = persona.apellidoCompleto.trim()
             }
           }
+        } else if (res.code() == 401) {
+          handleSessionExpired()
         }
       } catch (e: Exception) {
         e.printStackTrace()
@@ -245,20 +275,20 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
       try {
         android.util.Log.d("ProfilePhoto", "Requesting all documents...")
         val docRes = apiService.getDocumentos(token, token, getAuthHeader(token))
+        if (docRes.code() == 401) { handleSessionExpired(); return@launch }
         if (docRes.isSuccessful) {
           val docList = docRes.body()?.data
           val photoDoc = docList?.find { it.documento?.documento_tipo?.nombre == "FOTOGRAFIA" }
           val idDoc = photoDoc?.id_documento
-          
+
           android.util.Log.d("ProfilePhoto", "FOTOGRAFIA Document ID fetched: $idDoc")
           if (idDoc != null) {
             android.util.Log.d("ProfilePhoto", "Requesting Base64 photo for doc: $idDoc")
             val photoRes = apiService.getFotografiaBase64(token, token, getAuthHeader(token), idDoc)
+            if (photoRes.code() == 401) { handleSessionExpired(); return@launch }
             if (photoRes.isSuccessful) {
               var base64Str = photoRes.body()?.data
-              
-              // Depending on the exact API response, the base64 string could be wrapped inside the data string
-              // Let's strip the data:image/jpeg;base64, prefix if it exists
+
               if (base64Str != null && base64Str.startsWith("data:image")) {
                   base64Str = base64Str.substringAfter("base64,")
               }
@@ -289,6 +319,7 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
       _isLoadingEvaluaciones.value = true
       try {
         val response = apiService.getEvaluaciones(token, token, getAuthHeader(token), idExpediente)
+        if (response.code() == 401) { handleSessionExpired(); return@launch }
         if (response.isSuccessful) {
           _evaluaciones.value = response.body()?.data ?: emptyList()
         }
@@ -306,18 +337,20 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
       _isLoadingExpediente.value = true
       try {
         val facRes = apiService.getFacultadPlanEstudio(token, token, getAuthHeader(token))
+        if (facRes.code() == 401) { handleSessionExpired(); return@launch }
         if (facRes.isSuccessful) {
           _facultad.value = facRes.body()?.data
         }
 
         val ciclosRes = apiService.getCiclosEstudio(token, token, getAuthHeader(token))
+        if (ciclosRes.code() == 401) { handleSessionExpired(); return@launch }
         if (ciclosRes.isSuccessful) {
           val ciclos = ciclosRes.body()?.data ?: emptyList()
-          // Pick the most recent ciclo
           val currentCiclo = ciclos.maxByOrNull { it.idPeriodo }
-          
+
           if (currentCiclo != null) {
             val materiasRes = apiService.getMaterias(token, token, getAuthHeader(token), currentCiclo.idPeriodo)
+            if (materiasRes.code() == 401) { handleSessionExpired(); return@launch }
             if (materiasRes.isSuccessful) {
               _materias.value = materiasRes.body()?.data ?: emptyList()
             }
@@ -337,6 +370,7 @@ class PortalViewModel(application: Application) : AndroidViewModel(application) 
       _isLoadingRecord.value = true
       try {
         val response = apiService.getRecordNotas(token, token, getAuthHeader(token))
+        if (response.code() == 401) { handleSessionExpired(); return@launch }
         if (response.isSuccessful) {
           val allRecords = response.body()?.data
               ?.flatMap { it.record ?: emptyList() }
